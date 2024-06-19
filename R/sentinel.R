@@ -41,7 +41,7 @@
 #' ndvi_list <- sentinel(shp)
 #' }
 #' @export
-sentinel <- function(pol, date_debut = '2018-01-01', date_fin = '2024-12-31', max_nuage = 50) {
+sentinel <- function(pol, date_debut = '2018-01-01', date_fin = '2024-12-31', max_nuage = 50, resample =F) {
   # Initialize the Planetary Computer STAC API
   planetary_computer <- rstac::stac("https://planetarycomputer.microsoft.com/api/stac/v1")
 
@@ -110,7 +110,11 @@ sentinel <- function(pol, date_debut = '2018-01-01', date_fin = '2024-12-31', ma
 
     # Calculate NDVI
     ndvi <- (nir1 - r1) / (nir1 + r1)
-
+  if(resample){
+        s = ndvi
+    terra::res(s)=1
+    ndvi <- terra::resample(ndvi, s, method="bilinear")
+    }
     cloud <- SCL[which(a$date == i)] |>
       lapply(s2) |>
       terra::sprc() |>
