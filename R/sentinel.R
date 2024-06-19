@@ -77,20 +77,21 @@ sentinel <- function(pol, date_debut = '2018-01-01', date_fin = '2024-12-31', ma
   NIR <- rstac::assets_url(stac_query, "B08")
   SCL <- rstac::assets_url(stac_query, "SCL")
 
-  # Transform polygon to match the CRS of the Sentinel-2 data
-  polygone <- polygone |>
-    sf::st_transform(terra::crs(terra::rast(make_vsicurl_url(NIR[1])))) |>
-    terra::vect()
+  
 
   # Extract dates from the STAC query results
   a <- tibble::tibble(date = rstac::items_datetime(stac_query)) |>
     dplyr::mutate(date = substr(date, 1, 10))
 
   # Function to process Sentinel-2 imagery
-  s2 <- function(x) {
-    terra::mask(terra::crop(terra::rast(make_vsicurl_url(x)), polygone), polygone)
-  }
+   s2 <- function(x) {
+      # Transform polygon to match the CRS of the Sentinel-2 data
+  p <- polygone |>
+    sf::st_transform(terra::crs(terra::rast(make_vsicurl_url(x)))) |>
+    terra::vect()
 
+    terra::mask(terra::crop(terra::rast(make_vsicurl_url(x)), p), p)
+  }
   # Initialize a list to store NDVI rasters
   l <- list()
 
