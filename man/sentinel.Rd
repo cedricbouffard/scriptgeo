@@ -8,7 +8,9 @@ sentinel(
   pol,
   date_debut = "2018-01-01",
   date_fin = "2024-12-31",
-  max_nuage = 50
+  max_nuage = 50,
+  resample = F,
+  month = NULL
 )
 }
 \arguments{

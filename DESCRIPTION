@@ -8,8 +8,10 @@ Description: More about what it does (maybe more than one line) Use four
     spaces when indenting paragraphs within the Description.
 License: What license is it under?
 Imports: 
+    attachment,
     dplyr,
     httr,
+    lubridate,
     rstac,
     sf,
     terra,

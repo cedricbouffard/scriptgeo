@@ -117,7 +117,7 @@ n=NULL
       lapply(s2) |>
       terra::sprc() |>
       terra::mosaic()
-
+      
     # Calculate NDVI
     ndvi <- (nir1 - r1) / (nir1 + r1)
   if(resample){
