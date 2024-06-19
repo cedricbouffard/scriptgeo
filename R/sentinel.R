@@ -1,19 +1,3 @@
-# Hello, world!
-#
-# This is an example function named 'hello'
-# which prints 'Hello, world!'.
-#
-# You can learn more about package authoring with RStudio at:
-#
-#   http://r-pkgs.had.co.nz/
-#
-# Some useful keyboard shortcuts for package authoring:
-#
-#   Install Package:           'Ctrl + Shift + B'
-#   Check Package:             'Ctrl + Shift + E'
-#   Test Package:              'Ctrl + Shift + T'
-
-
 #' Retrieve and Process Sentinel-2 Data
 #'
 #' This function queries the Planetary Computer API for Sentinel-2 satellite imagery
@@ -41,7 +25,7 @@
 #' ndvi_list <- sentinel(shp)
 #' }
 #' @export
-sentinel <- function(pol, date_debut = '2018-01-01', date_fin = '2024-12-31', max_nuage = 50, resample =F) {
+sentinel <- function(pol, date_debut = '2018-01-01', date_fin = '2024-12-31', max_nuage = 50, resample =F, month = NULL) {
   # Initialize the Planetary Computer STAC API
   planetary_computer <- rstac::stac("https://planetarycomputer.microsoft.com/api/stac/v1")
 
@@ -83,7 +67,12 @@ make_vsicurl_url <- function(base_url) {
   # Extract dates from the STAC query results
   a <- tibble::tibble(date = rstac::items_datetime(stac_query)) |>
     dplyr::mutate(date = substr(date, 1, 10))
+    if(!is.null(month)){
 
+    a=a |> 
+    dplyr::mutate(m = lubridate::month(lubridate::as_date(date))) |> 
+    dplyr::filter(m %in% month)
+}
   # Function to process Sentinel-2 imagery
    s2 <- function(x) {
       # Transform polygon to match the CRS of the Sentinel-2 data
@@ -104,7 +93,7 @@ make_vsicurl_url <- function(base_url) {
   l <- list()
 n=NULL
   # Process imagery for each unique date
-  for (i in unique(a$date)) {
+  for (i in as.character(sort(lubridate::as_date(unique(a$date))))) {
     print(paste0("Processing date: ", i))
     cloud <- SCL[which(a$date == i)] |>
       lapply(s2) |>
@@ -144,7 +133,8 @@ n=NULL
     # Mask out clouds from the NDVI raster
     cloud <- terra::resample(cloud, ndvi)
     ndvi <- terra::mask(ndvi, !cloud)
-    l[[i]] <- ndvi
+    names(ndvi)=i
+    l[[i]]<-ndvi
     n= c(n,i)
   }}
 
