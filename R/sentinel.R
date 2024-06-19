@@ -63,14 +63,15 @@ sentinel <- function(pol, date_debut = '2018-01-01', date_fin = '2024-12-31', ma
     rstac::post_request()
 
   # Function to create VSICURL URLs for accessing assets
-  make_vsicurl_url <- function(base_url) {
-    paste0(
-      "/vsicurl",
-      "?pc_url_signing=yes",
-      "&pc_collection=sentinel-2-l2a",
-      "&url=", base_url
-    )
-  }
+make_vsicurl_url <- function(base_url) {
+  paste0(
+    "/vsicurl", 
+    "?pc_url_signing=yes",
+    "&pc_collection=sentinel-2-l2a",
+    "&url=",
+    base_url
+  )
+}
 
   # Retrieve URLs for relevant Sentinel-2 bands
   rouge <- rstac::assets_url(stac_query, "B04")
