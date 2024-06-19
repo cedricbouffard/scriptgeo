@@ -91,14 +91,34 @@ make_vsicurl_url <- function(base_url) {
     sf::st_transform(terra::crs(terra::rast(make_vsicurl_url(x)))) |>
     terra::vect()
 
-    terra::mask(terra::crop(terra::rast(make_vsicurl_url(x)), p), p)
+   r= terra::mask(terra::crop(terra::rast(make_vsicurl_url(x)), p), p)
+  resolution = terra::res(r)
+  r=r |> terra::project(terra::crs(terra::rast(make_vsicurl_url(rouge[1]))))
+   r2=r
+
+   terra::res(r2)=resolution 
+  terra::resample(r, r2)
+  
   }
   # Initialize a list to store NDVI rasters
   l <- list()
-
+n=NULL
   # Process imagery for each unique date
   for (i in unique(a$date)) {
     print(paste0("Processing date: ", i))
+    cloud <- SCL[which(a$date == i)] |>
+      lapply(s2) |>
+      terra::sprc() |>
+      terra::mosaic()
+    
+    cloud <- cloud == 3 | cloud == 7 | cloud == 8 | cloud == 9 | cloud == 10 | cloud == 11
+    p <- polygone |>
+    sf::st_transform(terra::crs(cloud)) |>
+    terra::vect()
+
+    cloudpct = as.numeric(terra::zonal(cloud, p, na.rm=TRUE))
+  
+    if(!(((cloudpct)*100)>max_nuage)){
 
     r1 <- rouge[which(a$date == i)] |>
       lapply(s2) |>
@@ -115,19 +135,19 @@ make_vsicurl_url <- function(base_url) {
         s = ndvi
     terra::res(s)=1
     ndvi <- terra::resample(ndvi, s, method="bilinear")
+    p <- polygone |>
+    sf::st_transform(terra::crs(ndvi)) |>
+    terra::vect()
+    ndvi=terra::mask(ndvi, p)
     }
-    cloud <- SCL[which(a$date == i)] |>
-      lapply(s2) |>
-      terra::sprc() |>
-      terra::mosaic()
-    cloud <- terra::resample(cloud, ndvi)
-    cloud <- cloud == 3 | cloud == 7 | cloud == 8 | cloud == 9 | cloud == 10 | cloud == 11
 
     # Mask out clouds from the NDVI raster
+    cloud <- terra::resample(cloud, ndvi)
     ndvi <- terra::mask(ndvi, !cloud)
     l[[i]] <- ndvi
-  }
+    n= c(n,i)
+  }}
 
-  names(l) <- unique(a$date)
+  names(l) <- n
   return(l)
 }
