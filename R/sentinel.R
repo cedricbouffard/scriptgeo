@@ -98,7 +98,7 @@ n=NULL
     cloud <- SCL[which(a$date == i)] |>
       lapply(s2) |>
       terra::sprc() |>
-      terra::mosaic()
+      terra::mosaic(fun="max")
     
     cloud <- cloud == 3 | cloud == 7 | cloud == 8 | cloud == 9 | cloud == 10 | cloud == 11
     p <- polygone |>
@@ -117,7 +117,7 @@ n=NULL
       lapply(s2) |>
       terra::sprc() |>
       terra::mosaic()
-      
+
     # Calculate NDVI
     ndvi <- (nir1 - r1) / (nir1 + r1)
   if(resample){
